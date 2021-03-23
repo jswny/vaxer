@@ -9,16 +9,16 @@ defmodule Vaxer.Notification.Supervisor do
 
   @impl true
   def init(_opts) do
-    phone_number =
+    twilio_phone_number =
       Application.get_application(__MODULE__)
-      |> Application.get_env(:phone_number)
+      |> Application.get_env(:twilio_phone_number)
 
     notification_phone_numbers =
       Application.get_application(__MODULE__)
       |> Application.get_env(:notification_phone_numbers)
 
     children = [
-      {Twilio, phone_number: phone_number, notification_phone_numbers: notification_phone_numbers}
+      {Twilio, twilio_phone_number: twilio_phone_number, notification_phone_numbers: notification_phone_numbers}
     ]
 
     Logger.info("Starting notification supervisor...")

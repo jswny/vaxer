@@ -30,7 +30,7 @@ end
 config :vaxer,
   delay: get_env_var.("DELAY", :int, 10000),
   notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
-  phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
+  twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
 
 config :ex_twilio,
   account_sid: get_env_var.("TWILIO_ACCOUNT_SID", nil, :none),

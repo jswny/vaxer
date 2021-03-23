@@ -10,10 +10,10 @@ defmodule Vaxer.Notification.Providers.Twilio do
   end
 
   @impl true
-  def init([phone_number: phone_number, notification_phone_numbers: notification_phone_numbers]) do
-    Logger.info("Starting #{@prefix} with phone number #{phone_number} and notification phone numbers: #{Enum.join(notification_phone_numbers, ", ")}...")
+  def init([twilio_phone_number: twilio_phone_number, notification_phone_numbers: notification_phone_numbers]) do
+    Logger.info("Starting #{@prefix} with phone number #{twilio_phone_number} and notification phone numbers: #{Enum.join(notification_phone_numbers, ", ")}...")
 
-    {:ok, %{phone_number: phone_number}}
+    {:ok, %{twilio_phone_number: twilio_phone_number}}
   end
 
   def notify(source) do
@@ -21,7 +21,7 @@ defmodule Vaxer.Notification.Providers.Twilio do
   end
 
   @impl true
-  def handle_cast({:notify, source}, %{phone_number: phone_number} = state) do
+  def handle_cast({:notify, source}, %{twilio_phone_number: twilio_phone_number} = state) do
     Logger.info("#{@prefix} notifying about #{source}...")
 
     {:noreply, state}
