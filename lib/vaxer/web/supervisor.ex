@@ -13,7 +13,7 @@ defmodule Vaxer.Web.Supervisor do
       CVS
     ]
 
-    Logger.debug("Starting web supervisor...")
+    Logger.info("Starting web supervisor...")
 
     Supervisor.init(children, strategy: :one_for_one)
   end

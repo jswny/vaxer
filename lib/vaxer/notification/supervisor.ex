@@ -11,7 +11,7 @@ defmodule Vaxer.Notification.Supervisor do
     children = [
     ]
 
-    Logger.debug("Starting notification supervisor...")
+    Logger.info("Starting notification supervisor...")
 
     Supervisor.init(children, strategy: :one_for_one)
   end
