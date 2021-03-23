@@ -7,22 +7,22 @@ defmodule Vaxer.Web.Providers.CVS do
   @url "https://www.cvs.com/immunizations/covid-19-vaccine"
   @prefix "CVS provider"
 
-  def start_link([]) do
-    GenServer.start_link(__MODULE__, [], [])
+  def start_link([delay: delay]) do
+    GenServer.start_link(__MODULE__, [delay: delay], [])
   end
 
   @impl true
-  def init(_opts) do
-    Logger.info("Starting CVS provider...")
+  def init([delay: delay]) do
+    Logger.info("Starting CVS provider with delay #{delay}...")
 
     {:ok, session} = Wallaby.start_session()
-    timer = create_check_timer(1000)
+    timer = create_check_timer(delay)
 
-    {:ok, %{session: session, timer: timer}}
+    {:ok, %{session: session, timer: timer, delay: delay}}
   end
 
   @impl true
-  def handle_info(:check, %{session: session} = state) do
+  def handle_info(:check, %{session: session, delay: delay} = state) do
     Logger.debug("#{@prefix} checking...")
 
     result = check(session)
@@ -32,7 +32,7 @@ defmodule Vaxer.Web.Providers.CVS do
       Logger.debug("#{@prefix} did not find any vaccines")
     end
 
-    timer = create_check_timer(1000)
+    timer = create_check_timer(delay)
 
     new_state = %{state | timer: timer}
 

@@ -9,8 +9,12 @@ defmodule Vaxer.Web.Supervisor do
 
   @impl true
   def init(_opts) do
+    delay =
+      Application.get_application(__MODULE__)
+      |> Application.get_env(:delay)
+
     children = [
-      CVS
+      {CVS, [delay: delay]}
     ]
 
     Logger.info("Starting web supervisor...")
