@@ -16,9 +16,9 @@ defmodule Vaxer.Web.Providers.CVS do
     Logger.info("Starting CVS provider...")
 
     {:ok, session} = Wallaby.start_session()
-    timer_ref = Process.send_after(self(), :check, 1000)
+    timer = create_check_timer(1000)
 
-    {:ok, %{session: session, timer: timer_ref}}
+    {:ok, %{session: session, timer: timer}}
   end
 
   @impl true
@@ -32,7 +32,15 @@ defmodule Vaxer.Web.Providers.CVS do
       Logger.debug("#{@prefix} did not find any vaccines")
     end
 
-    {:noreply, state}
+    timer = create_check_timer(1000)
+
+    new_state = %{state | timer: timer}
+
+    {:noreply, new_state}
+  end
+
+  defp create_check_timer(delay) do
+    Process.send_after(self(), :check, delay)
   end
 
   defp check(session) do
