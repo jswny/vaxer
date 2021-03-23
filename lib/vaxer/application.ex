@@ -4,14 +4,15 @@ defmodule Vaxer.Application do
   @moduledoc false
 
   use Application
-  alias Vaxer.Web
+  alias Vaxer.{Notification, Web}
 
   @impl true
   def start(_type, _args) do
     children = [
       # Starts a worker by calling: Vaxer.Worker.start_link(arg)
       # {Vaxer.Worker, arg}
-      Web.Supervisor
+      Web.Supervisor,
+      Notification.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
