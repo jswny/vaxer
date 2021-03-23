@@ -13,8 +13,12 @@ defmodule Vaxer.Web.Supervisor do
       Application.get_application(__MODULE__)
       |> Application.get_env(:delay)
 
+      state_abbreviation =
+      Application.get_application(__MODULE__)
+      |> Application.get_env(:state_abbreviation)
+
     children = [
-      {CVS, delay: delay}
+      {CVS, delay: delay, state_abbreviation: state_abbreviation}
     ]
 
     Logger.info("Starting web supervisor...")

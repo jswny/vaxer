@@ -29,6 +29,7 @@ end
 
 config :vaxer,
   delay: get_env_var.("DELAY", :int, 10000),
+  state_abbreviation: get_env_var.("STATE_ABBREVIATION", nil, :none),
   notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
   twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
 

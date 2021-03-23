@@ -13,20 +13,22 @@ defmodule Vaxer.Web.Providers.CVS do
   end
 
   @impl true
-  def init([delay: delay]) do
-    Logger.info("Starting #{@prefix} with delay #{delay}...")
+  def init([delay: delay, state_abbreviation: state_abbreviation]) do
+    Logger.info("Starting #{@prefix} for state #{state_abbreviation} with delay #{delay}...")
 
     {:ok, session} = Wallaby.start_session()
     timer = create_check_timer(delay)
 
-    {:ok, %{session: session, timer: timer, delay: delay}}
+    {:ok, state_name} = Vaxer.Location.get_state_name_from_abbreviation(state_abbreviation)
+
+    {:ok, %{session: session, timer: timer, delay: delay, state_name: state_name}}
   end
 
   @impl true
-  def handle_info(:check, %{session: session, delay: delay} = state) do
+  def handle_info(:check, %{session: session, delay: delay, state_name: state_name} = state) do
     Logger.debug("#{@prefix} checking...")
 
-    result = check(session)
+    result = check(session, state_name)
     if result do
       Logger.info("#{@prefix} found vaccines!")
       Twilio.notify("CVS", @url)
@@ -45,10 +47,10 @@ defmodule Vaxer.Web.Providers.CVS do
     Process.send_after(self(), :check, delay)
   end
 
-  defp check(session) do
+  defp check(session, state_name) do
     session
     |> Browser.visit(@url)
-    |> Browser.click(Query.link("Massachusetts"))
+    |> Browser.click(Query.link(state_name))
     |> Browser.all(Query.css("span.status"))
     |> Enum.any?(fn element ->
       text = Element.text(element)
