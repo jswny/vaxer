@@ -1,6 +1,7 @@
 defmodule Vaxer.Web.Supervisor do
   use Supervisor
   require Logger
+  alias Vaxer.Web.Providers.{CVS}
 
   def start_link(_opts) do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
@@ -9,6 +10,7 @@ defmodule Vaxer.Web.Supervisor do
   @impl true
   def init(_opts) do
     children = [
+      CVS
     ]
 
     Logger.debug("Starting web supervisor...")
