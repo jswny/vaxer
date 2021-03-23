@@ -18,6 +18,10 @@ get_env_var = fn var_name, type, default ->
       :int ->
         {value, _} = Integer.parse(value)
         value
+
+      :list ->
+        String.split(value, ",")
+
       _ -> value
     end
   end
@@ -25,6 +29,7 @@ end
 
 config :vaxer,
   delay: get_env_var.("DELAY", :int, 10000),
+  notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
   phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
 
 config :ex_twilio,

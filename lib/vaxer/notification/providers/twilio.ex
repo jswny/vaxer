@@ -10,9 +10,9 @@ defmodule Vaxer.Notification.Providers.Twilio do
   end
 
   @impl true
-  def init([phone_number: phone_number]) do
-    Logger.info("Starting #{@prefix} with phone number #{phone_number}...")
-    notify("test")
+  def init([phone_number: phone_number, notification_phone_numbers: notification_phone_numbers]) do
+    Logger.info("Starting #{@prefix} with phone number #{phone_number} and notification phone numbers: #{Enum.join(notification_phone_numbers, ", ")}...")
+
     {:ok, %{phone_number: phone_number}}
   end
 
