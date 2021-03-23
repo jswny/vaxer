@@ -1,0 +1,2 @@
+defmodule Vaxer do
+end
