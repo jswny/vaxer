@@ -7,8 +7,8 @@ defmodule Vaxer.Web.Providers.CVS do
   @url "https://www.cvs.com/immunizations/covid-19-vaccine"
   @prefix "CVS provider"
 
-  def start_link([delay: delay]) do
-    GenServer.start_link(__MODULE__, [delay: delay], [])
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @impl true
