@@ -29,7 +29,7 @@ defmodule Vaxer.Web.Providers.CVS do
     result = check(session)
     if result do
       Logger.info("#{@prefix} found vaccines!")
-      Twilio.notify("CVS")
+      Twilio.notify("CVS", @url)
     else
       Logger.debug("#{@prefix} did not find any vaccines")
     end

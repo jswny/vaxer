@@ -16,16 +16,18 @@ defmodule Vaxer.Notification.Providers.Twilio do
     {:ok, %{twilio_phone_number: twilio_phone_number, notification_phone_numbers: notification_phone_numbers}}
   end
 
-  def notify(source) do
-    GenServer.cast(__MODULE__, {:notify, source})
+  def notify(source, url) do
+    GenServer.cast(__MODULE__, {:notify, source, url})
   end
 
   @impl true
-  def handle_cast({:notify, source}, %{twilio_phone_number: twilio_phone_number, notification_phone_numbers: notification_phone_numbers} = state) do
+  def handle_cast({:notify, source, url}, %{twilio_phone_number: twilio_phone_number, notification_phone_numbers: notification_phone_numbers} = state) do
     Logger.info("#{@prefix} notifying about #{source}...")
 
     Enum.each(notification_phone_numbers, fn target_number ->
-      body = "Found vaccines at #{source}"
+      Logger.debug("#{@prefix} notifying #{target_number} about #{source}...")
+
+      body = "Found vaccines at #{source}! Link: #{url}"
 
       ExTwilio.Message.create(to: target_number, from: twilio_phone_number, body: body)
     end)
