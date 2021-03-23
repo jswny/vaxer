@@ -11,8 +11,8 @@ defmodule Vaxer.Application do
     children = [
       # Starts a worker by calling: Vaxer.Worker.start_link(arg)
       # {Vaxer.Worker, arg}
-      Web.Supervisor,
-      Notification.Supervisor
+      Notification.Supervisor,
+      Web.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

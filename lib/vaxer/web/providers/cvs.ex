@@ -13,7 +13,7 @@ defmodule Vaxer.Web.Providers.CVS do
 
   @impl true
   def init([delay: delay]) do
-    Logger.info("Starting CVS provider with delay #{delay}...")
+    Logger.info("Starting #{@prefix} with delay #{delay}...")
 
     {:ok, session} = Wallaby.start_session()
     timer = create_check_timer(delay)
