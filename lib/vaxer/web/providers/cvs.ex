@@ -3,6 +3,7 @@ defmodule Vaxer.Web.Providers.CVS do
   require Logger
   alias Wallaby
   alias Wallaby.{Browser, Query, Element}
+  alias Vaxer.Notification.Providers.Twilio
 
   @url "https://www.cvs.com/immunizations/covid-19-vaccine"
   @prefix "CVS provider"
@@ -28,6 +29,7 @@ defmodule Vaxer.Web.Providers.CVS do
     result = check(session)
     if result do
       Logger.info("#{@prefix} found vaccines!")
+      Twilio.notify("CVS")
     else
       Logger.debug("#{@prefix} did not find any vaccines")
     end
