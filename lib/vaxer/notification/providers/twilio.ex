@@ -5,15 +5,15 @@ defmodule Vaxer.Notification.Providers.Twilio do
 
   @prefix "Twilio notifier"
 
-  def start_link([]) do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @impl true
-  def init(_opts) do
-    Logger.info("Starting #{@prefix}...")
-
-    {:ok, %{}}
+  def init([phone_number: phone_number]) do
+    Logger.info("Starting #{@prefix} with phone number #{phone_number}...")
+    notify("test")
+    {:ok, %{phone_number: phone_number}}
   end
 
   def notify(source) do
@@ -21,7 +21,7 @@ defmodule Vaxer.Notification.Providers.Twilio do
   end
 
   @impl true
-  def handle_cast({:notify, source}, state) do
+  def handle_cast({:notify, source}, %{phone_number: phone_number} = state) do
     Logger.info("#{@prefix} notifying about #{source}...")
 
     {:noreply, state}

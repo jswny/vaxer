@@ -24,8 +24,9 @@ get_env_var = fn var_name, type, default ->
 end
 
 config :vaxer,
-  delay: get_env_var.("DELAY", :int, 10000)
+  delay: get_env_var.("DELAY", :int, 10000),
+  phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
 
 config :ex_twilio,
-  account_sid: get_env_var.("TWILIO_ACCOUNT_SID", nil, nil),
-  auth_token: get_env_var.("TWILIO_AUTH_TOKEN", nil, nil)
+  account_sid: get_env_var.("TWILIO_ACCOUNT_SID", nil, :none),
+  auth_token: get_env_var.("TWILIO_AUTH_TOKEN", nil, :none)
