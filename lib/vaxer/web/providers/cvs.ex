@@ -23,7 +23,7 @@ defmodule Vaxer.Web.Providers.CVS do
         Wallaby.start_session()
       end
 
-    timer = create_check_timer(delay)
+    timer = create_check_timer(60000)
 
     {:ok, state_name} = Vaxer.Location.get_state_name_from_abbreviation(state_abbreviation)
 
