@@ -13,8 +13,8 @@ services:
       - selenium
     restart: on-failure
     environment:
-      - DRIVER
-      - SELENIUM_URL
+      - DRIVER=selenium
+      - SELENIUM_URL=http://vaxer-selenium:4444/
       - DELAY
       - TWILIO_ACCOUNT_SID
       - TWILIO_AUTH_TOKEN
