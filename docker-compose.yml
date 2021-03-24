@@ -11,7 +11,10 @@ services:
     container_name: vaxer
     depends_on:
       - selenium
-    restart: on-failure
+    restart_policy:
+      condition: on-failure
+      delay: 3s
+      max_attempts: 3
     environment:
       - DRIVER
       - SELENIUM_URL
