@@ -32,7 +32,7 @@ defmodule Vaxer.Web.Supervisor do
         ""
       end
 
-    Logger.info("Starting web supervisor...#{selenium_info}")
+    Logger.info("Starting web supervisor#{selenium_info}...")
 
     Supervisor.init(children, strategy: :one_for_one)
   end
