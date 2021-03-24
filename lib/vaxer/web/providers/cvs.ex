@@ -49,6 +49,11 @@ defmodule Vaxer.Web.Providers.CVS do
     {:noreply, new_state}
   end
 
+  @impl true
+  def terminate(_reason, %{session: session}) do
+    Wallaby.end_session(session)
+  end
+
   defp create_check_timer(delay) do
     Process.send_after(self(), :check, delay)
   end
