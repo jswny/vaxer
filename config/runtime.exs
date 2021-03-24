@@ -27,11 +27,28 @@ get_env_var = fn var_name, type, default ->
   end
 end
 
+get_driver = fn value ->
+  case value do
+    "selenium" -> Wallaby.Selenium
+    _ -> Wallaby.Chrome
+  end
+end
+
+driver = get_driver.(get_env_var.("DRIVER", nil, nil))
+
 config :vaxer,
-  delay: get_env_var.("DELAY", :int, 10000),
+  delay: get_env_var.("DELAY", :int, 300_000),
   state_abbreviation: get_env_var.("STATE_ABBREVIATION", nil, :none),
   notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
   twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
+
+config :wallaby,
+  driver: get_driver.(get_env_var.("DRIVER", nil, nil))
+
+if driver == Wallaby.Selenium do
+  config :vaxer,
+    selenium_url: get_env_var.("SELENIUM_URL", nil, "http://localhost:4444/")
+end
 
 config :ex_twilio,
   account_sid: get_env_var.("TWILIO_ACCOUNT_SID", nil, :none),

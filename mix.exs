@@ -7,6 +7,8 @@ defmodule Vaxer.MixProject do
       version: "0.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
+      releases: releases(),
+      default_release: :vaxer,
       deps: deps()
     ]
   end
@@ -16,6 +18,14 @@ defmodule Vaxer.MixProject do
     [
       extra_applications: [:logger],
       mod: {Vaxer.Application, []}
+    ]
+  end
+
+  def releases() do
+    [
+      vaxer: [
+        applications: [ex_unit: :permanent]
+      ]
     ]
   end
 

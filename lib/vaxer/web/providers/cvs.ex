@@ -13,10 +13,16 @@ defmodule Vaxer.Web.Providers.CVS do
   end
 
   @impl true
-  def init([delay: delay, state_abbreviation: state_abbreviation]) do
+  def init([selenium_url: selenium_url, delay: delay, state_abbreviation: state_abbreviation]) do
     Logger.info("Starting #{@prefix} for state #{state_abbreviation} with delay #{delay}...")
 
-    {:ok, session} = Wallaby.start_session()
+    {:ok, session} =
+      if selenium_url != nil do
+        Wallaby.start_session(remote_url: selenium_url, capabilities: %{browserName: "chrome"})
+      else
+        Wallaby.start_session()
+      end
+
     timer = create_check_timer(delay)
 
     {:ok, state_name} = Vaxer.Location.get_state_name_from_abbreviation(state_abbreviation)

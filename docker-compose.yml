@@ -1,0 +1,23 @@
+version: "3"
+services:
+  selenium:
+    image: selenium/standalone-chrome:4.0.0-beta-3-prerelease-20210321
+    container_name: vaxer-selenium
+    volumes:
+      - /dev/shm:/dev/shm
+  vaxer:
+    build: .
+    image: ghcr.io/jswny/vaxer
+    container_name: vaxer
+    depends_on:
+      - selenium
+    restart: on-failure
+    environment:
+      - DRIVER
+      - SELENIUM_URL
+      - DELAY
+      - TWILIO_ACCOUNT_SID
+      - TWILIO_AUTH_TOKEN
+      - TWILIO_PHONE_NUMBER
+      - NOTIFICATION_PHONE_NUMBERS
+      - STATE_ABBREVIATION

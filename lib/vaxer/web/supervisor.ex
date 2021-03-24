@@ -9,19 +9,30 @@ defmodule Vaxer.Web.Supervisor do
 
   @impl true
   def init(_opts) do
+    selenium_url =
+      Application.get_application(__MODULE__)
+      |> Application.get_env(:selenium_url)
+
     delay =
       Application.get_application(__MODULE__)
       |> Application.get_env(:delay)
 
-      state_abbreviation =
+    state_abbreviation =
       Application.get_application(__MODULE__)
       |> Application.get_env(:state_abbreviation)
 
     children = [
-      {CVS, delay: delay, state_abbreviation: state_abbreviation}
+      {CVS, selenium_url: selenium_url, delay: delay, state_abbreviation: state_abbreviation}
     ]
 
-    Logger.info("Starting web supervisor...")
+    selenium_info =
+      if selenium_url != nil do
+        " with Selenium at #{selenium_url}"
+      else
+        ""
+      end
+
+    Logger.info("Starting web supervisor...#{selenium_info}")
 
     Supervisor.init(children, strategy: :one_for_one)
   end
