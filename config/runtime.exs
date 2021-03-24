@@ -37,7 +37,7 @@ end
 driver = get_driver.(get_env_var.("DRIVER", nil, nil))
 
 config :vaxer,
-  delay: get_env_var.("DELAY", :int, 300_000),
+  delay: get_env_var.("DELAY", :int, 600_000),
   state_abbreviation: get_env_var.("STATE_ABBREVIATION", nil, :none),
   notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
   twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
