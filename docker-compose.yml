@@ -3,6 +3,7 @@ services:
   selenium:
     image: selenium/standalone-chrome:4.0.0-beta-3-prerelease-20210321
     container_name: vaxer-selenium
+    restart: on-failure
     volumes:
       - /dev/shm:/dev/shm
   vaxer:

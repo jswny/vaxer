@@ -10,7 +10,7 @@ A vaccine finder which can alert you using SMS when vaccines are available
 
 **Note**: all phone numbers should be in the form `+1XXXXXXXXXX` for US numbers.
 
-- `DELAY`: delay in MS in between checks, defaults to 10 minutes
+- `DELAY`: delay in MS in between checks, defaults to 10 minutes. The first check is done 1 minute after startup, then the delay is used.
 - `TWILIO_ACCOUNT_SID`: for your Twilio account
 - `TWILIO_AUTH_TOKEN`: for your Twilio account
 - `TWILIO_PHONE_NUMBER`: the Twilio phone number to send SMS from using your account
