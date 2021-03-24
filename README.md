@@ -8,6 +8,8 @@ A vaccine finder which can alert you using SMS when vaccines are available
 
 ## Environment Variables
 
+**Note**: all phone numbers should be in the form `+1XXXXXXXXXX` for US numbers.
+
 - `DELAY`: delay in MS in between checks, defaults to 10 minutes
 - `TWILIO_ACCOUNT_SID`: for your Twilio account
 - `TWILIO_AUTH_TOKEN`: for your Twilio account
