@@ -16,15 +16,7 @@ defmodule Vaxer.Web.Providers.CVS do
   def init([selenium_url: selenium_url, delay: delay, state_abbreviation: state_abbreviation]) do
     Logger.info("Starting #{@prefix} for state #{state_abbreviation} with delay #{delay} ms...")
 
-    one_minute = 60000
-
-    initial_check_delay =
-      if delay < one_minute do
-        delay
-      else
-        one_minute
-      end
-    timer = create_check_timer(initial_check_delay)
+    timer = inital_check_delay(delay)
 
     {:ok, state_name} = Vaxer.Location.get_state_name_from_abbreviation(state_abbreviation)
 
@@ -32,12 +24,12 @@ defmodule Vaxer.Web.Providers.CVS do
   end
 
   @impl true
-  def handle_info(:check, %{selenium_url: selenium_url, delay: delay, state_name: state_name} = state) do
+  def handle_info(:check, %{selenium_url: selenium_url, timer: timer, delay: delay, state_name: state_name} = state) do
     Logger.debug("#{@prefix} checking...")
 
-    session = start_session(selenium_url)
-    result = check(session, state_name)
-    Wallaby.end_session(session)
+    Process.cancel_timer(timer)
+
+    result = check_with_new_session(selenium_url, state_name)
 
     if result do
       Logger.info("#{@prefix} found vaccines!")
@@ -46,7 +38,7 @@ defmodule Vaxer.Web.Providers.CVS do
       Logger.debug("#{@prefix} did not find any vaccines")
     end
 
-    timer = create_check_timer(delay)
+    timer = check_after_delay(delay)
 
     new_state = %{state | timer: timer}
 
@@ -58,7 +50,7 @@ defmodule Vaxer.Web.Providers.CVS do
     Process.cancel_timer(timer)
   end
 
-  defp create_check_timer(delay) do
+  defp check_after_delay(delay) do
     Process.send_after(self(), :check, delay)
   end
 
@@ -71,6 +63,27 @@ defmodule Vaxer.Web.Providers.CVS do
       end
 
     session
+  end
+
+  defp inital_check_delay(delay) do
+    one_minute = 60000
+
+    initial_check_delay =
+      if delay < one_minute do
+        delay
+      else
+        one_minute
+      end
+
+    check_after_delay(initial_check_delay)
+  end
+
+  defp check_with_new_session(selenium_url, state_name) do
+    session = start_session(selenium_url)
+    result = check(session, state_name)
+    Wallaby.end_session(session)
+
+    result
   end
 
   defp check(session, state_name) do
