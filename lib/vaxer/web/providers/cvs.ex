@@ -14,7 +14,7 @@ defmodule Vaxer.Web.Providers.CVS do
 
   @impl true
   def init([selenium_url: selenium_url, delay: delay, state_abbreviation: state_abbreviation]) do
-    Logger.info("Starting #{@prefix} for state #{state_abbreviation} with delay #{delay}...")
+    Logger.info("Starting #{@prefix} for state #{state_abbreviation} with delay #{delay} ms...")
 
     {:ok, session} =
       if selenium_url != nil do
