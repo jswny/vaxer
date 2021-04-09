@@ -22,7 +22,8 @@ get_env_var = fn var_name, type, default ->
       :list ->
         String.split(value, ",")
 
-      _ -> value
+      _ ->
+        value
     end
   end
 end
@@ -40,7 +41,10 @@ config :vaxer,
   delay: get_env_var.("DELAY", :int, 600_000),
   state_abbreviation: get_env_var.("STATE_ABBREVIATION", nil, :none),
   notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
-  twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none)
+  twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none),
+  zip_code: get_env_var.("ZIP_CODE", nil, nil),
+  zip_distances_path: get_env_var.("ZIP_DISTANCES_PATH", nil, "data/zips.csv"),
+  cvs_zip_codes_path: get_env_var.("CVS_ZIP_CODES_PATH", nil, "data/cvs_zips.csv")
 
 config :wallaby,
   driver: get_driver.(get_env_var.("DRIVER", nil, nil))

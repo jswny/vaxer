@@ -4,6 +4,7 @@ defmodule Vaxer.Web.Providers.CVS do
   alias Wallaby
   alias Wallaby.{Browser, Query, Element}
   alias Vaxer.Notification.Providers.Twilio
+  alias Vaxer.Location
 
   @url "https://www.cvs.com/immunizations/covid-19-vaccine"
   @prefix "CVS provider"
@@ -20,23 +21,57 @@ defmodule Vaxer.Web.Providers.CVS do
 
     timer = inital_check_delay(delay)
 
-    {:ok, %{selenium_url: selenium_url, timer: timer, delay: delay, state_name: state_name}}
+    {:ok,
+     %{
+       selenium_url: selenium_url,
+       timer: timer,
+       delay: delay,
+       state_name: state_name,
+       state_abbreviation: state_abbreviation
+     }}
   end
 
   @impl true
   def handle_info(
         :check,
-        %{selenium_url: selenium_url, timer: timer, delay: delay, state_name: state_name} = state
+        %{
+          selenium_url: selenium_url,
+          timer: timer,
+          delay: delay,
+          state_name: state_name,
+          state_abbreviation: state_abbreviation
+        } = state
       ) do
     Logger.debug("#{prefix_with_state(state_name)} checking...")
 
     Process.cancel_timer(timer)
 
-    result = check_with_new_session(selenium_url, state_name)
+    locations = check_with_new_session(selenium_url, state_name)
 
-    if result do
-      Logger.info("#{prefix_with_state(state_name)} found vaccines!")
-      Twilio.notify("CVS in #{state_name}", @url)
+    Logger.debug(
+      "#{prefix_with_state(state_name)} found vaccines in #{
+        locations_to_cities(locations, state_abbreviation, false)
+      }!"
+    )
+
+    distance = 50
+
+    locations_within_distance =
+      locations
+      |> Enum.filter(&Location.cvs_location_within_distance?(&1, 50))
+
+    if Enum.count(locations_within_distance) > 0 do
+      cities_inline = locations_to_cities(locations_within_distance, state_abbreviation)
+
+      cities = locations_to_cities(locations_within_distance, state_abbreviation, true)
+
+      Logger.info(
+        "#{prefix_with_state(state_name)} found vaccines within #{distance} miles in #{
+          cities_inline
+        }!"
+      )
+
+      Twilio.notify("CVS in #{state_name} in:\n\n#{cities}", @url)
     else
       Logger.debug("#{prefix_with_state(state_name)} did not find any vaccines")
     end
@@ -83,24 +118,51 @@ defmodule Vaxer.Web.Providers.CVS do
 
   defp check_with_new_session(selenium_url, state_name) do
     session = start_session(selenium_url)
-    result = check(session, state_name)
+    locations = check(session, state_name)
     Wallaby.end_session(session)
 
-    result
+    locations
   end
 
   defp check(session, state_name) do
     session
     |> Browser.visit(@url)
     |> Browser.click(Query.link(state_name))
-    |> Browser.all(Query.css("span.status"))
-    |> Enum.any?(fn element ->
-      text = Element.text(element)
-      !String.contains?(text, "Fully Booked")
+    |> Browser.all(Query.css("div.covid-status tbody tr"))
+    |> Enum.map(fn tr ->
+      location =
+        tr
+        |> Browser.find(Query.css("span.city"))
+        |> Element.text()
+
+      status =
+        tr
+        |> Browser.find(Query.css("span.status"))
+        |> Element.text()
+        |> String.contains?("Fully Booked")
+
+      status = !status
+
+      {location, status}
     end)
+    |> Enum.filter(fn {_location, status} -> status == true end)
+    |> Enum.map(fn {location, _status} -> location end)
   end
 
-  def prefix_with_state(state) do
+  defp prefix_with_state(state) do
     "#{@prefix} for state #{state}"
+  end
+
+  defp locations_to_cities(locations, state_abbreviation, multiline? \\ false) do
+    separator =
+      if multiline? do
+        "\n"
+      else
+        ", "
+      end
+
+    locations
+    |> Enum.map(fn location -> String.replace(location, ", #{state_abbreviation}", "") end)
+    |> Enum.join(separator)
   end
 end

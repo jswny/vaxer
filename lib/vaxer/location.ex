@@ -1,4 +1,8 @@
 defmodule Vaxer.Location do
+  use GenServer
+  require Logger
+
+  @prefix "Location provider"
   @state_abbreviations_to_names %{
     "AL" => "Alabama",
     "AK" => "Alaska",
@@ -61,12 +65,114 @@ defmodule Vaxer.Location do
     "WY" => "Wyoming"
   }
 
+  NimbleCSV.define(ZipDistancesParser, [])
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
   def get_state_name_from_abbreviation(abbreviation) do
     name = Map.get(@state_abbreviations_to_names, abbreviation, nil)
+
     if name == nil do
       {:error, "invalid state abbreviation"}
     else
       {:ok, name}
+    end
+  end
+
+  @impl true
+  def init(
+        zip_code: zip_code,
+        zip_distances_path: zip_distances_path,
+        cvs_zip_codes_path: cvs_zip_codes_path
+      ) do
+    Logger.info("Starting #{prefix_with_zip_code(zip_code)}...")
+
+    if zip_code == nil do
+      Logger.info("#{prefix_with_zip_code(zip_code)} bypassing ZIP code checks...")
+
+      {:ok, %{bypass: true, zip_distances: %{}, cvs_zip_codes: %{}}}
+    else
+      Logger.debug("#{prefix_with_zip_code(zip_code)} loading ZIP distances...")
+
+      zip_distances = parse_zip_distances(zip_distances_path, zip_code)
+
+      Logger.debug(
+        "#{prefix_with_zip_code(zip_code)} loaded #{Enum.count(zip_distances)} ZIP distances!"
+      )
+
+      Logger.debug("#{prefix_with_zip_code(zip_code)} loading CVS ZIP codes...")
+
+      cvs_zip_codes = parse_cvs_zip_codes(cvs_zip_codes_path)
+
+      Logger.debug(
+        "#{prefix_with_zip_code(zip_code)} loaded #{Enum.count(cvs_zip_codes)} CVS ZIP codes!"
+      )
+
+      {:ok, %{bypass: false, zip_distances: zip_distances, cvs_zip_codes: cvs_zip_codes}}
+    end
+  end
+
+  def cvs_location_within_distance?(location, max_distance) do
+    GenServer.call(__MODULE__, {:cvs_location_within_distance, location, max_distance})
+  end
+
+  @impl true
+  def handle_call(
+        {:cvs_location_within_distance, location, max_distance},
+        _from,
+        %{
+          bypass: bypass,
+          zip_distances: zip_distances,
+          cvs_zip_codes: cvs_zip_codes
+        } = state
+      ) do
+    if bypass do
+      {:reply, true, state}
+    else
+      zip_code = Map.get(cvs_zip_codes, String.downcase(location))
+      {:reply, zip_within_distance?(zip_distances, zip_code, max_distance), state}
+    end
+  end
+
+  defp parse_zip_distances(zip_distances_path, zip_code) do
+    zip_distances_path
+    |> File.stream!(read_ahead: 100_000)
+    |> ZipDistancesParser.parse_stream()
+    |> Stream.filter(fn [zip1, _zip2, _distance] -> zip1 == zip_code end)
+    |> Stream.map(fn [_zip1, zip2, distance] ->
+      {:binary.copy(zip2), String.to_float(distance)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp parse_cvs_zip_codes(cvs_zips_path) do
+    cvs_zips_path
+    |> File.stream!(read_ahead: 100_000)
+    |> ZipDistancesParser.parse_stream()
+    |> Stream.map(fn [city, state, zip] ->
+      location = "#{:binary.copy(city)}, #{:binary.copy(state)}" |> String.downcase()
+      {location, :binary.copy(zip)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp zip_within_distance?(zip_distances, to_zip, max_distance) do
+    distance = Map.get(zip_distances, to_zip)
+
+    if distance != nil && distance <= max_distance do
+      true
+    else
+      false
+    end
+  end
+
+  defp prefix_with_zip_code(zip_code) do
+    if zip_code == nil do
+      "#{@prefix}"
+    else
+      "#{@prefix} for ZIP code #{zip_code}"
     end
   end
 end
