@@ -13,29 +13,32 @@ defmodule Vaxer.Web.Providers.CVS do
   end
 
   @impl true
-  def init([selenium_url: selenium_url, delay: delay, state_abbreviation: state_abbreviation]) do
-    Logger.info("Starting #{@prefix} for state #{state_abbreviation} with delay #{delay} ms...")
+  def init(selenium_url: selenium_url, delay: delay, state_abbreviation: state_abbreviation) do
+    {:ok, state_name} = Vaxer.Location.get_state_name_from_abbreviation(state_abbreviation)
+
+    Logger.info("Starting #{prefix_with_state(state_name)} with delay #{delay} ms...")
 
     timer = inital_check_delay(delay)
-
-    {:ok, state_name} = Vaxer.Location.get_state_name_from_abbreviation(state_abbreviation)
 
     {:ok, %{selenium_url: selenium_url, timer: timer, delay: delay, state_name: state_name}}
   end
 
   @impl true
-  def handle_info(:check, %{selenium_url: selenium_url, timer: timer, delay: delay, state_name: state_name} = state) do
-    Logger.debug("#{@prefix} checking...")
+  def handle_info(
+        :check,
+        %{selenium_url: selenium_url, timer: timer, delay: delay, state_name: state_name} = state
+      ) do
+    Logger.debug("#{prefix_with_state(state_name)} checking...")
 
     Process.cancel_timer(timer)
 
     result = check_with_new_session(selenium_url, state_name)
 
     if result do
-      Logger.info("#{@prefix} found vaccines!")
-      Twilio.notify("CVS", @url)
+      Logger.info("#{prefix_with_state(state_name)} found vaccines!")
+      Twilio.notify("CVS in #{state_name}", @url)
     else
-      Logger.debug("#{@prefix} did not find any vaccines")
+      Logger.debug("#{prefix_with_state(state_name)} did not find any vaccines")
     end
 
     timer = check_after_delay(delay)
@@ -95,5 +98,9 @@ defmodule Vaxer.Web.Providers.CVS do
       text = Element.text(element)
       !String.contains?(text, "Fully Booked")
     end)
+  end
+
+  def prefix_with_state(state) do
+    "#{@prefix} for state #{state}"
   end
 end
