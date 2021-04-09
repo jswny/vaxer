@@ -190,7 +190,7 @@ defmodule Vaxer.Location do
     if zip_code == nil do
       "#{@prefix}"
     else
-      "#{@prefix} for ZIP code #{zip_code} with maximum distance #{max_distance}"
+      "#{@prefix} for ZIP code #{zip_code} with maximum distance #{max_distance} miles"
     end
   end
 end

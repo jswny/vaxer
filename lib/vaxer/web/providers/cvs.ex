@@ -60,12 +60,12 @@ defmodule Vaxer.Web.Providers.CVS do
       locations
       |> Enum.filter(&Location.cvs_location_within_distance?(&1))
 
+    distance = Location.max_distance()
+
     if Enum.count(locations_within_distance) > 0 do
       cities_inline = locations_to_cities(locations_within_distance, state_abbreviation)
 
       cities = locations_to_cities(locations_within_distance, state_abbreviation, true)
-
-      distance = Location.max_distance()
 
       Logger.info(
         "#{prefix_with_state(state_name)} found vaccines within #{distance} miles in #{
@@ -75,7 +75,9 @@ defmodule Vaxer.Web.Providers.CVS do
 
       Twilio.notify("CVS in #{state_name} in:\n\n#{cities}", @url)
     else
-      Logger.debug("#{prefix_with_state(state_name)} did not find any vaccines")
+      Logger.debug(
+        "#{prefix_with_state(state_name)} did not find any vaccines within #{distance} miles"
+      )
     end
 
     timer = check_after_delay(delay)
