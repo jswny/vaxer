@@ -12,6 +12,10 @@ defmodule Vaxer.Application do
       Application.get_application(__MODULE__)
       |> Application.get_env(:zip_code)
 
+    max_distance =
+      Application.get_application(__MODULE__)
+      |> Application.get_env(:max_distance)
+
     zip_distances_path =
       Application.get_application(__MODULE__)
       |> Application.get_env(:zip_distances_path)
@@ -26,6 +30,7 @@ defmodule Vaxer.Application do
       {Location,
        [
          zip_code: zip_code,
+         max_distance: max_distance,
          zip_distances_path: zip_distances_path,
          cvs_zip_codes_path: cvs_zip_codes_path
        ]},

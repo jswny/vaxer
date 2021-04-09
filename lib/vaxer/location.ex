@@ -84,46 +84,58 @@ defmodule Vaxer.Location do
   @impl true
   def init(
         zip_code: zip_code,
+        max_distance: max_distance,
         zip_distances_path: zip_distances_path,
         cvs_zip_codes_path: cvs_zip_codes_path
       ) do
-    Logger.info("Starting #{prefix_with_zip_code(zip_code)}...")
+    Logger.info("Starting #{prefix_with_zip_code(zip_code, max_distance)}...")
 
     if zip_code == nil do
-      Logger.info("#{prefix_with_zip_code(zip_code)} bypassing ZIP code checks...")
+      Logger.info("#{prefix_with_zip_code(zip_code, max_distance)} bypassing ZIP code checks...")
 
-      {:ok, %{bypass: true, zip_distances: %{}, cvs_zip_codes: %{}}}
+      {:ok, %{bypass: true, max_distance: max_distance, zip_distances: %{}, cvs_zip_codes: %{}}}
     else
-      Logger.debug("#{prefix_with_zip_code(zip_code)} loading ZIP distances...")
+      Logger.debug("#{prefix_with_zip_code(zip_code, max_distance)} loading ZIP distances...")
 
-      zip_distances = parse_zip_distances(zip_distances_path, zip_code)
+      zip_distances = parse_zip_distances(zip_distances_path, zip_code, max_distance)
 
       Logger.debug(
-        "#{prefix_with_zip_code(zip_code)} loaded #{Enum.count(zip_distances)} ZIP distances!"
+        "#{prefix_with_zip_code(zip_code, max_distance)} loaded #{Enum.count(zip_distances)} ZIP distances!"
       )
 
-      Logger.debug("#{prefix_with_zip_code(zip_code)} loading CVS ZIP codes...")
+      Logger.debug("#{prefix_with_zip_code(zip_code, max_distance)} loading CVS ZIP codes...")
 
       cvs_zip_codes = parse_cvs_zip_codes(cvs_zip_codes_path)
 
       Logger.debug(
-        "#{prefix_with_zip_code(zip_code)} loaded #{Enum.count(cvs_zip_codes)} CVS ZIP codes!"
+        "#{prefix_with_zip_code(zip_code, max_distance)} loaded #{Enum.count(cvs_zip_codes)} CVS ZIP codes!"
       )
 
-      {:ok, %{bypass: false, zip_distances: zip_distances, cvs_zip_codes: cvs_zip_codes}}
+      {:ok,
+       %{
+         bypass: false,
+         max_distance: max_distance,
+         zip_distances: zip_distances,
+         cvs_zip_codes: cvs_zip_codes
+       }}
     end
   end
 
-  def cvs_location_within_distance?(location, max_distance) do
-    GenServer.call(__MODULE__, {:cvs_location_within_distance, location, max_distance})
+  def cvs_location_within_distance?(location) do
+    GenServer.call(__MODULE__, {:cvs_location_within_distance, location})
+  end
+
+  def max_distance() do
+    GenServer.call(__MODULE__, :max_distance)
   end
 
   @impl true
   def handle_call(
-        {:cvs_location_within_distance, location, max_distance},
+        {:cvs_location_within_distance, location},
         _from,
         %{
           bypass: bypass,
+          max_distance: max_distance,
           zip_distances: zip_distances,
           cvs_zip_codes: cvs_zip_codes
         } = state
@@ -136,7 +148,12 @@ defmodule Vaxer.Location do
     end
   end
 
-  defp parse_zip_distances(zip_distances_path, zip_code) do
+  @impl true
+  def handle_call(:max_distance, _from, %{max_distance: max_distance} = state) do
+    {:reply, max_distance, state}
+  end
+
+  defp parse_zip_distances(zip_distances_path, zip_code, max_distance) do
     zip_distances_path
     |> File.stream!(read_ahead: 100_000)
     |> ZipDistancesParser.parse_stream()
@@ -144,6 +161,7 @@ defmodule Vaxer.Location do
     |> Stream.map(fn [_zip1, zip2, distance] ->
       {:binary.copy(zip2), String.to_float(distance)}
     end)
+    |> Stream.filter(fn {_zip2, distance} -> distance <= max_distance end)
     |> Enum.into(%{})
   end
 
@@ -168,11 +186,11 @@ defmodule Vaxer.Location do
     end
   end
 
-  defp prefix_with_zip_code(zip_code) do
+  defp prefix_with_zip_code(zip_code, max_distance) do
     if zip_code == nil do
       "#{@prefix}"
     else
-      "#{@prefix} for ZIP code #{zip_code}"
+      "#{@prefix} for ZIP code #{zip_code} with maximum distance #{max_distance}"
     end
   end
 end

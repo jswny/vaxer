@@ -43,6 +43,7 @@ config :vaxer,
   notification_phone_numbers: get_env_var.("NOTIFICATION_PHONE_NUMBERS", :list, :none),
   twilio_phone_number: get_env_var.("TWILIO_PHONE_NUMBER", nil, :none),
   zip_code: get_env_var.("ZIP_CODE", nil, nil),
+  max_distance: get_env_var.("MAX_DISTANCE", :int, 50),
   zip_distances_path: get_env_var.("ZIP_DISTANCES_PATH", nil, "data/zips.csv"),
   cvs_zip_codes_path: get_env_var.("CVS_ZIP_CODES_PATH", nil, "data/cvs_zips.csv")
 

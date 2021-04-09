@@ -16,7 +16,8 @@ A vaccine finder which can alert you using SMS when vaccines are available
 - `TWILIO_PHONE_NUMBER`: the Twilio phone number to send SMS from using your account
 - `NOTIFICATION_PHONE_NUMBERS`: a comma-separated list of phone numbers to message when a vaccine is available
 - `STATE_ABBREVIATION`: the two-letter abbreviation of the state to check, such as `MA`
-- `ZIP_CODE`: the zip code to check for vaccination locations near. If this is set, locations will be searched within 50 miles. Otherwise, any location in the state will be returned if vaccines are available.
+- `ZIP_CODE`: the zip code to check for vaccination locations near. If this is set, locations will be searched within the specified distance. Otherwise, any location in the state will be returned if vaccines are available.
+- `DISTANCE`: the distance around the zip code (in miles) to search for locations
 
 ## Running
 
@@ -29,6 +30,7 @@ TWILIO_PHONE_NUMBER=<fill>
 NOTIFICATION_PHONE_NUMBERS=<fill>
 STATE_ABBREVIATION=<fill>
 ZIP_CODE=<fill>
+DISTANCE=<fill>
 ```
 
 2. Run the app with `docker-compose up` or `docker-compose up -d` for detatched mode

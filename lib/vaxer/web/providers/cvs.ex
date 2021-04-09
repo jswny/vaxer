@@ -48,22 +48,24 @@ defmodule Vaxer.Web.Providers.CVS do
 
     locations = check_with_new_session(selenium_url, state_name)
 
-    Logger.debug(
-      "#{prefix_with_state(state_name)} found vaccines in #{
-        locations_to_cities(locations, state_abbreviation, false)
-      }!"
-    )
-
-    distance = 50
+    if Enum.count(locations) > 0 do
+      Logger.debug(
+        "#{prefix_with_state(state_name)} found vaccines in state in #{
+          locations_to_cities(locations, state_abbreviation, false)
+        }!"
+      )
+    end
 
     locations_within_distance =
       locations
-      |> Enum.filter(&Location.cvs_location_within_distance?(&1, 50))
+      |> Enum.filter(&Location.cvs_location_within_distance?(&1))
 
     if Enum.count(locations_within_distance) > 0 do
       cities_inline = locations_to_cities(locations_within_distance, state_abbreviation)
 
       cities = locations_to_cities(locations_within_distance, state_abbreviation, true)
+
+      distance = Location.max_distance()
 
       Logger.info(
         "#{prefix_with_state(state_name)} found vaccines within #{distance} miles in #{
