@@ -23,7 +23,8 @@ defmodule Vaxer.Notification.Providers.Twilio do
     {:ok,
      %{
        twilio_phone_number: twilio_phone_number,
-       notification_phone_numbers: notification_phone_numbers
+       notification_phone_numbers: notification_phone_numbers,
+       last_message_source: nil
      }}
   end
 
@@ -36,19 +37,25 @@ defmodule Vaxer.Notification.Providers.Twilio do
         {:notify, source, url},
         %{
           twilio_phone_number: twilio_phone_number,
-          notification_phone_numbers: notification_phone_numbers
+          notification_phone_numbers: notification_phone_numbers,
+          last_message_source: last_message_source
         } = state
       ) do
-    Logger.info("#{@prefix} notifying about #{source}...")
+    if last_message_source == source do
+      Logger.info("#{@prefix} skipping duplicate notification about #{source}...")
+    else
+      Logger.info("#{@prefix} notifying about #{source}...")
 
-    Enum.each(notification_phone_numbers, fn target_number ->
-      Logger.debug("#{@prefix} notifying #{target_number} about #{source}...")
+      Enum.each(notification_phone_numbers, fn target_number ->
+        Logger.debug("#{@prefix} notifying #{target_number} about #{source}...")
 
-      body = "Found vaccines at #{source}\n\nLink: #{url}"
+        body = "Found vaccines at #{source}\n\nLink: #{url}"
 
-      ExTwilio.Message.create(to: target_number, from: twilio_phone_number, body: body)
-    end)
+        ExTwilio.Message.create(to: target_number, from: twilio_phone_number, body: body)
+      end)
+    end
 
-    {:noreply, state}
+    new_state = %{state | last_message_source: source}
+    {:noreply, new_state}
   end
 end
