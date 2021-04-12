@@ -141,10 +141,16 @@ defmodule Vaxer.Location do
         } = state
       ) do
     if bypass do
-      {:reply, true, state}
+      {:reply, :bypass, state}
     else
       zip_code = Map.get(cvs_zip_codes, String.downcase(location))
-      {:reply, zip_within_distance?(zip_distances, zip_code, max_distance), state}
+      within_distance = zip_within_distance?(zip_distances, zip_code, max_distance)
+
+      if within_distance do
+        {:reply, zip_code, state}
+      else
+        {:reply, nil, state}
+      end
     end
   end
 

@@ -56,16 +56,19 @@ defmodule Vaxer.Web.Providers.CVS do
       )
     end
 
-    locations_within_distance =
+    locations_and_zips_within_distance =
       locations
-      |> Enum.filter(&Location.cvs_location_within_distance?(&1))
+      |> Enum.map(fn location -> {location, Location.cvs_location_within_distance?(location)} end)
+      |> Enum.filter(fn {_location, zip} -> zip != nil end)
 
     distance = Location.max_distance()
 
-    if Enum.count(locations_within_distance) > 0 do
-      cities_inline = locations_to_cities(locations_within_distance, state_abbreviation)
+    if Enum.count(locations_and_zips_within_distance) > 0 do
+      cities_inline =
+        locations_to_cities_and_zips(locations_and_zips_within_distance, state_abbreviation)
 
-      cities = locations_to_cities(locations_within_distance, state_abbreviation, true)
+      cities =
+        locations_to_cities_and_zips(locations_and_zips_within_distance, state_abbreviation, true)
 
       Logger.info(
         "#{prefix_with_state(state_name)} found vaccines within #{distance} miles in #{
@@ -167,6 +170,30 @@ defmodule Vaxer.Web.Providers.CVS do
 
     locations
     |> Enum.map(fn location -> String.replace(location, ", #{state_abbreviation}", "") end)
+    |> Enum.join(separator)
+  end
+
+  defp locations_to_cities_and_zips(locations, state_abbreviation, multiline? \\ false) do
+    separator =
+      if multiline? do
+        "\n"
+      else
+        ", "
+      end
+
+    locations
+    |> Enum.map(fn {location, zip} ->
+      city = String.replace(location, ", #{state_abbreviation}", "")
+
+      zip =
+        if zip != :bypass do
+          " (#{zip})"
+        else
+          ""
+        end
+
+      "#{city}#{zip}"
+    end)
     |> Enum.join(separator)
   end
 end
